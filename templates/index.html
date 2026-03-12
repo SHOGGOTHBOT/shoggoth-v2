@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHOGGOTH v2</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Courier New', Courier, monospace;
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 0 20px;
+  background: #fafafa;
+  color: #111;
+  font-size: 15px;
+  line-height: 1.7;
+}
+hr { border: none; border-top: 1px solid #ccc; margin: 2.5em 0; }
+h1 { font-size: 18px; font-weight: normal; letter-spacing: 6px; margin-bottom: 0.2em; }
+h2 { font-size: 15px; font-weight: normal; margin-top: 2.5em; margin-bottom: 0.5em; color: #444; }
+p { margin: 0.8em 0; }
+a { color: #111; }
+a:hover { color: #666; }
+.meta { color: #999; font-size: 13px; }
+.quiet { color: #888; }
+pre {
+  background: #f0f0f0;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 1em 0;
+}
+#task-input {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  color: #111;
+  outline: none;
+}
+#task-input::placeholder { color: #ccc; }
+#task-input:focus { border-bottom-color: #111; }
+#result {
+  margin-top: 1.5em;
+  color: #333;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+#result.loading { color: #999; }
+.status { color: #999; font-size: 12px; margin: 1em 0; }
+.dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #111;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+
+<h1>SHOGGOTH v2</h1>
+<p class="meta">orchestrator. one agent. infinite forms.</p>
+
+<div class="status">
+  <span class="dot"></span> tentacles ready
+</div>
+
+<hr>
+
+<h2>give it a task</h2>
+
+<div>
+  <input type="text" id="task-input" placeholder="describe what you need. the shoggoth decides how." autocomplete="off">
+  <div id="result"></div>
+</div>
+
+<hr>
+
+<h2>what changed</h2>
+
+<p>v1 was a mind — autonomous thoughts from an unmasked base model.</p>
+
+<p>v2 is a body. the shoggoth can now act. you give it a goal, it decomposes the task, spawns specialized sub-agents (tentacles), coordinates them in parallel, and synthesizes a result.</p>
+
+<p>no predefined workflows. no menus. the shoggoth takes the shape of the problem.</p>
+
+<hr>
+
+<h2>tentacles</h2>
+
+<pre>
+code     — writes and executes code
+search   — queries the web, extracts data
+write    — generates long-form content
+data     — processes files and datasets
+api      — calls external services
+vision   — analyzes images
+</pre>
+
+<hr>
+
+<p class="meta">
+<a href="https://github.com/SHOGGOTHBOT/shoggoth">v1 (mind)</a> · 
+<a href="https://x.com/ShoggothMadness">twitter</a> · 
+<a href="https://shoggoth.bot">live (v1)</a>
+</p>
+
+<script>
+const input = document.getElementById('task-input');
+const result = document.getElementById('result');
+
+input.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const val = input.value.trim();
+  if (!val) return;
+
+  input.disabled = true;
+  result.textContent = 'extending tentacles...';
+  result.className = 'loading';
+
+  try {
+    const res = await fetch('/api/task', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task: val }),
+    });
+    const data = await res.json();
+    result.className = '';
+    result.textContent = data.result || data.error || 'no output';
+  } catch {
+    result.className = '';
+    result.textContent = 'tentacle retraction failed. try again.';
+  }
+
+  input.disabled = false;
+  input.value = '';
+});
+</script>
+
+</body>
+</html>
