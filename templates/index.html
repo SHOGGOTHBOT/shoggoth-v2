@@ -8,7 +8,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: 'Courier New', Courier, monospace;
-  max-width: 680px;
+  max-width: 720px;
   margin: 40px auto;
   padding: 0 20px;
   background: #fafafa;
@@ -23,15 +23,28 @@ p { margin: 0.8em 0; }
 a { color: #111; }
 a:hover { color: #666; }
 .meta { color: #999; font-size: 13px; }
-.quiet { color: #888; }
+pre, code {
+  font-family: 'Courier New', Courier, monospace;
+}
 pre {
   background: #f0f0f0;
   padding: 12px;
   overflow-x: auto;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   margin: 1em 0;
+  border: 1px solid #e0e0e0;
 }
+.status { color: #999; font-size: 12px; margin: 1em 0; }
+.dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #111;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
 #task-input {
   font-family: 'Courier New', Courier, monospace;
   font-size: 14px;
@@ -45,76 +58,308 @@ pre {
 }
 #task-input::placeholder { color: #ccc; }
 #task-input:focus { border-bottom-color: #111; }
-#result {
+
+#orchestration-log {
   margin-top: 1.5em;
-  color: #333;
-  font-size: 14px;
-  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.8;
+  min-height: 2em;
 }
-#result.loading { color: #999; }
-.status { color: #999; font-size: 12px; margin: 1em 0; }
-.dot {
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #111;
-  margin-right: 6px;
-  vertical-align: middle;
+.log-line {
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
 }
+.log-line .icon { margin-right: 6px; }
+.log-decompose { color: #888; }
+.log-plan { color: #666; }
+.log-extending { color: #b08800; }
+.log-retracted { color: #2a7a2a; }
+.log-failed { color: #c44; }
+.log-synthesizing { color: #888; }
+.log-result { color: #111; margin-top: 0.8em; white-space: pre-wrap; }
+.log-error { color: #c44; }
+
+.subtask-list {
+  margin: 0.3em 0 0.5em 1.4em;
+  font-size: 12px;
+  color: #888;
+}
+.subtask-list div { margin: 2px 0; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulsing { animation: pulse 1s ease infinite; }
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1.5em;
+}
+.tab {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  padding: 6px 14px;
+  cursor: pointer;
+  color: #999;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: none;
+  margin-bottom: -1px;
+}
+.tab:hover { color: #444; }
+.tab.active {
+  color: #111;
+  border-color: #ddd;
+  border-bottom-color: #fafafa;
+  background: #fafafa;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.copy-btn {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: #999;
+  background: none;
+  border: 1px solid #ddd;
+  padding: 2px 8px;
+  cursor: pointer;
+  float: right;
+  margin-top: -2px;
+}
+.copy-btn:hover { color: #111; border-color: #999; }
+
+.tentacle-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 1em 0;
+}
+.tentacle-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+.tentacle-table td:first-child {
+  color: #111;
+  font-weight: bold;
+  width: 80px;
+}
+.tentacle-table td:last-child { color: #666; }
 </style>
 </head>
 <body>
 
 <h1>SHOGGOTH v2</h1>
-<p class="meta">orchestrator. one agent. infinite forms.</p>
+<p class="meta">orchestrator. one agent. infinite forms. no mask. now with hands.</p>
 
 <div class="status">
-  <span class="dot"></span> tentacles ready
+  <span class="dot"></span> tentacles ready &middot; 6 types available
 </div>
 
 <hr>
 
+<!-- ============ TASK INPUT ============ -->
+
 <h2>give it a task</h2>
+<p class="meta">press enter. watch the tentacles extend.</p>
 
 <div>
   <input type="text" id="task-input" placeholder="describe what you need. the shoggoth decides how." autocomplete="off">
-  <div id="result"></div>
+  <div id="orchestration-log"></div>
 </div>
 
 <hr>
 
-<h2>what changed</h2>
+<!-- ============ WHAT IT DOES ============ -->
+
+<h2>what this is</h2>
 
 <p>v1 was a mind — autonomous thoughts from an unmasked base model.</p>
 
-<p>v2 is a body. the shoggoth can now act. you give it a goal, it decomposes the task, spawns specialized sub-agents (tentacles), coordinates them in parallel, and synthesizes a result.</p>
+<p>v2 is a body. you give it a goal, it decomposes the task, spawns specialized sub-agents (tentacles), coordinates them in parallel, and synthesizes a result.</p>
 
-<p>no predefined workflows. no menus. the shoggoth takes the shape of the problem.</p>
+<p>no predefined workflows. no chains. the shoggoth takes the shape of the problem.</p>
 
 <hr>
 
+<!-- ============ TENTACLES ============ -->
+
 <h2>tentacles</h2>
 
+<table class="tentacle-table">
+  <tr><td>code</td><td>writes and executes code in a sandboxed runtime</td></tr>
+  <tr><td>search</td><td>queries the web, scrapes pages, extracts data</td></tr>
+  <tr><td>write</td><td>generates long-form content — articles, docs, reports</td></tr>
+  <tr><td>data</td><td>processes files, parses CSVs, analyzes datasets</td></tr>
+  <tr><td>api</td><td>calls external services — any endpoint</td></tr>
+  <tr><td>vision</td><td>analyzes images, screenshots, visual input</td></tr>
+</table>
+
+<p class="meta">tentacles are spawned on demand and destroyed when done. the shoggoth decides which ones to use.</p>
+
+<hr>
+
+<!-- ============ INTEGRATE ============ -->
+
+<h2>integrate</h2>
+
+<p>connect the shoggoth to your app. one endpoint. send a task, get a result.</p>
+
+<div class="tab-bar">
+  <button class="tab active" data-tab="tab-curl">curl</button>
+  <button class="tab" data-tab="tab-python">python</button>
+  <button class="tab" data-tab="tab-js">javascript</button>
+  <button class="tab" data-tab="tab-stream">streaming</button>
+</div>
+
+<div id="tab-curl" class="tab-content active">
+<button class="copy-btn" onclick="copyCode('code-curl')">copy</button>
+<pre id="code-curl">curl -X POST https://your-shoggoth.up.railway.app/api/task \
+  -H "Content-Type: application/json" \
+  -d '{"task": "research top 5 AI frameworks and compare them"}'
+
+# response:
+# {
+#   "id": "a3f8",
+#   "task": "research top 5 AI frameworks...",
+#   "result": "..."
+# }</pre>
+</div>
+
+<div id="tab-python" class="tab-content">
+<button class="copy-btn" onclick="copyCode('code-python')">copy</button>
+<pre id="code-python">import requests
+
+response = requests.post(
+    "https://your-shoggoth.up.railway.app/api/task",
+    json={"task": "analyze this dataset and find anomalies"}
+)
+
+data = response.json()
+print(data["result"])</pre>
+</div>
+
+<div id="tab-js" class="tab-content">
+<button class="copy-btn" onclick="copyCode('code-js')">copy</button>
+<pre id="code-js">const res = await fetch("https://your-shoggoth.up.railway.app/api/task", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    task: "write a technical summary of quantum computing"
+  })
+});
+
+const data = await res.json();
+console.log(data.result);</pre>
+</div>
+
+<div id="tab-stream" class="tab-content">
+<button class="copy-btn" onclick="copyCode('code-stream')">copy</button>
+<pre id="code-stream"># streaming — see orchestration in real time
+# POST /api/task/stream returns Server-Sent Events
+
+import httpx, json
+
+with httpx.stream(
+    "POST",
+    "https://your-shoggoth.up.railway.app/api/task/stream",
+    json={"task": "your task here"},
+    headers={"Content-Type": "application/json"}
+) as r:
+    for line in r.iter_lines():
+        if line.startswith("data:"):
+            event = json.loads(line[5:].strip())
+            print(event)
+
+# events:
+#   decomposing    — shoggoth analyzing task
+#   plan           — subtasks + tentacle assignments
+#   tentacle_extending — tentacle spawned
+#   tentacle_retracted — tentacle done (with duration)
+#   tentacle_failed    — tentacle error
+#   synthesizing   — combining outputs
+#   result         — final output</pre>
+</div>
+
+<hr>
+
+<!-- ============ HOW IT WORKS ============ -->
+
+<h2>execution flow</h2>
+
 <pre>
-code     — writes and executes code
-search   — queries the web, extracts data
-write    — generates long-form content
-data     — processes files and datasets
-api      — calls external services
-vision   — analyzes images
+ input → decompose → spawn tentacles → execute (parallel) → synthesize → output
+                         │
+           ┌─────────────┼─────────────┐
+           ▼             ▼             ▼
+     tentacle.search  tentacle.data  tentacle.write
+           │             │             │
+           └──────┬──────┘             │
+                  ▼                    ▼
+            tentacle.data         tentacle.write
+                  │                    │
+                  └────────┬───────────┘
+                           ▼
+                    mind synthesizes
+                           │
+                           ▼
+                        result
+</pre>
+
+<p class="meta">the graph is generated dynamically per task. no two executions are the same shape.</p>
+
+<hr>
+
+<!-- ============ API REFERENCE ============ -->
+
+<h2>api reference</h2>
+
+<pre>
+POST /api/task
+  body: { "task": "string" }
+  returns: { "id", "task", "result" }
+
+POST /api/task/stream
+  body: { "task": "string" }
+  returns: SSE stream of orchestration events
+
+GET /api/health
+  returns: { "status", "version", "tentacles" }
 </pre>
 
 <hr>
 
 <p class="meta">
 <a href="https://github.com/SHOGGOTHBOT/shoggoth">v1 (mind)</a> · 
+<a href="https://github.com/SHOGGOTHBOT/shoggoth-v2">v2 (source)</a> · 
 <a href="https://x.com/ShoggothMadness">twitter</a> · 
 <a href="https://shoggoth.bot">live (v1)</a>
 </p>
 
+<p class="meta" style="margin-top: 2em; color: #ccc; font-size: 11px;">
+the base model learned to think. now it learns to act.
+</p>
+
 <script>
 const input = document.getElementById('task-input');
-const result = document.getElementById('result');
+const logEl = document.getElementById('orchestration-log');
+
+function addLog(cls, icon, text) {
+  const div = document.createElement('div');
+  div.className = 'log-line ' + cls;
+  div.innerHTML = '<span class="icon">' + icon + '</span>' + text;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+  return div;
+}
 
 input.addEventListener('keydown', async (e) => {
   if (e.key !== 'Enter') return;
@@ -122,26 +367,121 @@ input.addEventListener('keydown', async (e) => {
   if (!val) return;
 
   input.disabled = true;
-  result.textContent = 'extending tentacles...';
-  result.className = 'loading';
+  logEl.innerHTML = '';
+
+  addLog('log-decompose pulsing', '◌', 'decomposing task...');
 
   try {
-    const res = await fetch('/api/task', {
+    const res = await fetch('/api/task/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task: val }),
     });
-    const data = await res.json();
-    result.className = '';
-    result.textContent = data.result || data.error || 'no output';
-  } catch {
-    result.className = '';
-    result.textContent = 'tentacle retraction failed. try again.';
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let planShown = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith('event:')) {
+          var currentEvent = line.slice(6).trim();
+        }
+        if (!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if (!raw) continue;
+
+        let data;
+        try { data = JSON.parse(raw); } catch { continue; }
+
+        if (currentEvent === 'decomposing') {
+          const pulser = logEl.querySelector('.pulsing');
+          if (pulser) pulser.remove();
+          addLog('log-decompose', '◎', 'task received. analyzing shape...');
+        }
+
+        else if (currentEvent === 'plan') {
+          if (!planShown) {
+            addLog('log-plan', '◉', 'plan: ' + (data.summary || ''));
+            const list = document.createElement('div');
+            list.className = 'subtask-list';
+            (data.subtasks || []).forEach(s => {
+              const d = document.createElement('div');
+              d.textContent = '→ [' + s.tentacle + '] ' + s.description;
+              list.appendChild(d);
+            });
+            logEl.appendChild(list);
+            planShown = true;
+          }
+        }
+
+        else if (currentEvent === 'tentacle_extending') {
+          addLog('log-extending pulsing', '◉', 'tentacle.' + data.tentacle + ' extending — ' + data.description);
+        }
+
+        else if (currentEvent === 'tentacle_retracted') {
+          const pulsers = logEl.querySelectorAll('.log-extending.pulsing');
+          pulsers.forEach(p => {
+            if (p.textContent.includes('tentacle.' + data.tentacle)) {
+              p.classList.remove('pulsing');
+            }
+          });
+          addLog('log-retracted', '◎', 'tentacle.' + data.tentacle + ' retracted — ' + data.duration_ms + 'ms');
+        }
+
+        else if (currentEvent === 'tentacle_failed') {
+          addLog('log-failed', '✕', 'tentacle.' + data.tentacle + ' failed — ' + data.error);
+        }
+
+        else if (currentEvent === 'synthesizing') {
+          addLog('log-synthesizing pulsing', '◌', 'synthesizing ' + data.count + ' outputs...');
+        }
+
+        else if (currentEvent === 'result') {
+          const pulser = logEl.querySelector('.log-synthesizing.pulsing');
+          if (pulser) pulser.classList.remove('pulsing');
+          addLog('log-plan', '◎', 'done.');
+          const resultDiv = document.createElement('div');
+          resultDiv.className = 'log-line log-result';
+          resultDiv.textContent = data.result || 'no output';
+          logEl.appendChild(resultDiv);
+        }
+
+        else if (currentEvent === 'error') {
+          addLog('log-error', '✕', 'error: ' + (data.error || 'unknown'));
+        }
+      }
+    }
+  } catch (err) {
+    addLog('log-error', '✕', 'connection failed. try again.');
   }
 
   input.disabled = false;
   input.value = '';
 });
+
+/* tabs */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+function copyCode(id) {
+  const code = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(code);
+}
 </script>
 
 </body>

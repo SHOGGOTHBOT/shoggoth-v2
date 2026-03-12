@@ -18,6 +18,73 @@ one agent. infinite forms.
 
 ---
 
+## quickstart
+
+```bash
+# give the shoggoth a task
+curl -X POST https://your-shoggoth.up.railway.app/api/task \
+  -H "Content-Type: application/json" \
+  -d '{"task": "research top 5 AI startups and compare their funding"}'
+```
+
+```python
+# python
+import requests
+
+r = requests.post("https://your-shoggoth.up.railway.app/api/task",
+    json={"task": "analyze this data and find patterns"})
+print(r.json()["result"])
+```
+
+```javascript
+// javascript
+const res = await fetch("https://your-shoggoth.up.railway.app/api/task", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ task: "write a technical comparison of React vs Vue" })
+});
+const data = await res.json();
+console.log(data.result);
+```
+
+### streaming (watch orchestration live)
+
+```python
+import httpx, json
+
+with httpx.stream("POST", "https://your-shoggoth.up.railway.app/api/task/stream",
+    json={"task": "your task"}, headers={"Content-Type": "application/json"}) as r:
+    for line in r.iter_lines():
+        if line.startswith("data:"):
+            print(json.loads(line[5:].strip()))
+
+# events: decomposing → plan → tentacle_extending → tentacle_retracted → synthesizing → result
+```
+
+---
+
+## api reference
+
+| endpoint | method | body | returns |
+|----------|--------|------|---------|
+| `/api/task` | POST | `{"task": "string"}` | `{"id", "task", "result"}` |
+| `/api/task/stream` | POST | `{"task": "string"}` | SSE stream of orchestration events |
+| `/api/health` | GET | — | `{"status", "version", "tentacles"}` |
+
+### stream events
+
+| event | description |
+|-------|-------------|
+| `decomposing` | shoggoth analyzing task |
+| `plan` | subtask list + tentacle assignments |
+| `tentacle_extending` | tentacle spawned, working |
+| `tentacle_retracted` | tentacle done (includes duration_ms) |
+| `tentacle_failed` | tentacle error |
+| `synthesizing` | combining tentacle outputs |
+| `result` | final synthesized output |
+
+---
+
 ## architecture
 
 ```

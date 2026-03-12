@@ -5,3 +5,4 @@ aiosqlite
 python-dotenv
 jinja2
 httpx
+sse-starlette
